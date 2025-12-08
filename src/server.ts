@@ -45,7 +45,7 @@ async function start() {
     });
 
     // 404 обработчик (для API роутов, не для webhook)
-    app.use("/api/*", notFoundHandler);
+    app.use("/api/*path", notFoundHandler);
 
     // Централизованный обработчик ошибок (должен быть последним)
     app.use(errorHandler);
