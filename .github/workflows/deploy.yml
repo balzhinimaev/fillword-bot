@@ -51,7 +51,7 @@ jobs:
           # Копируем на сервер
           ssh -i ~/.ssh/key ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "mkdir -p ${{ env.APP_DIR }}/logs"
           rsync -avz --delete -e "ssh -i ~/.ssh/key" \
-            dist/ package.json package-lock.json Dockerfile docker-compose.yml .env \
+            dist package.json package-lock.json Dockerfile docker-compose.yml .env \
             ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:${{ env.APP_DIR }}/
 
           # Перезапускаем контейнер
