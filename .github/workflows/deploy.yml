@@ -1,0 +1,65 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+env:
+  APP_DIR: /opt/buryat-fillword-game-bot
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Build
+        run: |
+          npm ci
+          npm run build
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/key
+          chmod 600 ~/.ssh/key
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy
+        run: |
+          # Создаём .env
+          cat > .env << EOF
+          BOT_TOKEN=${{ secrets.BOT_TOKEN }}
+          WEBHOOK_DOMAIN=${{ secrets.WEBHOOK_DOMAIN }}
+          PORT=3000
+          API_URL=${{ secrets.API_URL }}
+          WEB_APP_URL=${{ secrets.WEB_APP_URL }}
+          ADMIN_IDS=${{ secrets.ADMIN_IDS }}
+          BOT_USERNAME=${{ secrets.BOT_USERNAME }}
+          NODE_ENV=production
+          LOG_LEVEL=info
+          LOG_DIR=/app/logs
+          EOF
+
+          # Копируем на сервер
+          ssh -i ~/.ssh/key ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "mkdir -p ${{ env.APP_DIR }}/logs"
+          rsync -avz --delete -e "ssh -i ~/.ssh/key" \
+            dist/ package.json package-lock.json Dockerfile docker-compose.yml .env \
+            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:${{ env.APP_DIR }}/
+
+          # Перезапускаем контейнер
+          ssh -i ~/.ssh/key ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "\
+            cd ${{ env.APP_DIR }} && \
+            docker compose down && \
+            docker compose up -d --build"
+
+      - name: Cleanup
+        if: always()
+        run: rm -f ~/.ssh/key

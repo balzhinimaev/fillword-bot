@@ -1,0 +1,14 @@
+services:
+  bot:
+    build: .
+    container_name: buryat-fillword-bot
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "5000:3000"
+    volumes:
+      - ./logs:/app/logs
+    environment:
+      - NODE_ENV=production
+      - LOG_DIR=/app/logs
+
