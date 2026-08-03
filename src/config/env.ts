@@ -28,6 +28,9 @@ export const config = {
   // API
   apiUrl: process.env.API_URL || "http://localhost:3000",
   webAppUrl: process.env.WEB_APP_URL || "https://app.yourapp.com",
+  // Прямая ссылка на Mini App (короткое имя из BotFather) — работает во всех
+  // клиентах, в отличие от web_app-кнопок (Telegram X и старые версии их не открывают)
+  miniAppLink: process.env.MINI_APP_LINK || "https://t.me/buryat_fillword_bot/buryatgameapp",
 
   // Admin
   adminIds: parseAdminIds(process.env.ADMIN_IDS),

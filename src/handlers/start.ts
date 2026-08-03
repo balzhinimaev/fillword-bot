@@ -32,14 +32,15 @@ export const startHandler = async (ctx: StartContext) => {
   // Отправляем на бэкенд (fire and forget - не блокируем ответ пользователю)
   BackendService.getInstance().registerPrelaunchUser(payload);
 
-  // Отвечаем пользователю
+  // Отвечаем пользователю. Кнопка — прямая ссылка на Mini App (как нативная
+  // кнопка меню): web_app-кнопки не открываются в Telegram X и старых клиентах.
   await ctx.reply("Сайн байна! 👋\nДобро пожаловать в игру.", {
     reply_markup: {
       inline_keyboard: [
         [
           {
             text: "🚀 Эхилхэ (Начать игру)",
-            web_app: { url: config.webAppUrl },
+            url: config.miniAppLink,
           },
         ],
       ],
