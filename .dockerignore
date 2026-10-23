@@ -1,12 +1,6 @@
-node_modules
-src
 .git
-.github
+node_modules
+dist
 .env
-*.log
+.env.*
 logs
-.gitignore
-.dockerignore
-tsconfig.json
-*.md
-
