@@ -1,28 +1,26 @@
-name: Verified release image
+name: Legacy bot VPS read-only preflight
 on:
-  push:
-    branches: [master]
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
-  quality:
-    uses: ./.github/workflows/quality-gate.yml
-  image:
-    needs: quality
+  preflight:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
+    timeout-minutes: 3
     steps:
-      - uses: actions/checkout@v4
-      - uses: docker/login-action@v3
+      - name: Inspect legacy host without changing it
+        uses: appleboy/ssh-action@v1.0.3
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - uses: docker/build-push-action@v6
-        with:
-          context: .
-          push: true
-          tags: ghcr.io/${{ github.repository }}:${{ github.sha }}
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          timeout: 15s
+          command_timeout: 30s
+          script: |
+            set -eu
+            printf 'SSH connection established\n'
+            docker ps --format '{{.Names}} {{.Image}} {{.Status}}'
+            if [ -d /opt/buryat-fillword-game-bot ]; then
+              cd /opt/buryat-fillword-game-bot
+              docker compose ps --format '{{.Service}} {{.State}} {{.Health}}'
+            fi
